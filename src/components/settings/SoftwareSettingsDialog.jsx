@@ -15,39 +15,31 @@ import CloseIcon from '@mui/icons-material/Close';
 import SettingsIcon from '@mui/icons-material/Settings';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
+import { useAuth } from '../../contexts/authcontext';
 
 const SoftwareSettingsDialog = () => {
+  const { 
+    apiUri: savedApiUri, 
+    username: savedUsername, 
+    password: savedPassword,
+    authenticate,
+    saveCredentials
+  } = useAuth();
+
   const [open, setOpen] = useState(false);
-  const [apiUri, setApiUri] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [apiUri, setApiUri] = useState(savedApiUri || '');
+  const [username, setUsername] = useState(savedUsername || '');
+  const [password, setPassword] = useState(savedPassword || '');
   const [rememberCredentials, setRememberCredentials] = useState(true);
   const [verificationStatus, setVerificationStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load saved credentials when component mounts
+  // Update local state when context values change
   useEffect(() => {
-    const loadCredentials = async () => {
-      try {
-        // For Tauri apps, we can use localStorage
-        // In a production Tauri app, you might want to use more secure storage methods
-        // like tauri's fs module with proper encryption
-        const savedApiUri = localStorage.getItem('apiUri');
-        const savedUsername = localStorage.getItem('username');
-        const savedPassword = localStorage.getItem('password');
-        const savedRemember = localStorage.getItem('rememberCredentials');
-        
-        if (savedApiUri) setApiUri(savedApiUri);
-        if (savedUsername) setUsername(savedUsername);
-        if (savedPassword) setPassword(savedPassword);
-        if (savedRemember !== null) setRememberCredentials(savedRemember === 'true');
-      } catch (error) {
-        console.error('Failed to load saved credentials:', error);
-      }
-    };
-
-    loadCredentials();
-  }, []);
+    if (savedApiUri) setApiUri(savedApiUri);
+    if (savedUsername) setUsername(savedUsername);
+    if (savedPassword) setPassword(savedPassword);
+  }, [savedApiUri, savedUsername, savedPassword]);
 
   const handleOpen = () => {
     setOpen(true);
@@ -57,25 +49,6 @@ const SoftwareSettingsDialog = () => {
     setOpen(false);
     // Reset verification status when dialog closes
     setVerificationStatus(null);
-  };
-
-  const saveCredentials = () => {
-    try {
-      if (rememberCredentials) {
-        localStorage.setItem('apiUri', apiUri);
-        localStorage.setItem('username', username);
-        localStorage.setItem('password', password);
-        localStorage.setItem('rememberCredentials', 'true');
-      } else {
-        // Clear saved credentials if "remember" is unchecked
-        localStorage.removeItem('apiUri');
-        localStorage.removeItem('username');
-        localStorage.removeItem('password');
-        localStorage.setItem('rememberCredentials', 'false');
-      }
-    } catch (error) {
-      console.error('Failed to save credentials:', error);
-    }
   };
 
   const handleVerification = async () => {
@@ -91,31 +64,18 @@ const SoftwareSettingsDialog = () => {
     setVerificationStatus(null);
 
     try {
-      const endpoint = `${apiUri}/api/auth/signin`;
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          username: username,
-          password: password
-        })
-      });
+      // Use the authenticate method from the auth context
+      const result = await authenticate(apiUri, username, password, rememberCredentials);
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (result.success) {
         setVerificationStatus({
           success: true,
           message: 'Данные верны!'
         });
-        // Save credentials after successful verification
-        saveCredentials();
       } else {
         setVerificationStatus({
           success: false,
-          message: data.message || 'Проверка прошла неудачно'
+          message: result.error || 'Проверка прошла неудачно'
         });
       }
     } catch (error) {
@@ -140,11 +100,9 @@ const SoftwareSettingsDialog = () => {
         onClick={handleOpen}
         sx={{ marginLeft: 'auto' }}
       >
-                
         <SettingsIcon />
       </IconButton>
       
-
       <Dialog 
         open={open} 
         onClose={handleClose}
