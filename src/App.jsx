@@ -5,17 +5,17 @@ import {
   Box, 
   Menu, 
   MenuItem, 
-  IconButton, 
   AppBar, 
   Toolbar
 } from '@mui/material';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import SettingsIcon from '@mui/icons-material/Settings';
+
 import CloseIcon from '@mui/icons-material/Close';
 
 import DataTable from './DataTable';
 import { DataTableProvider } from './contexts/datatablecontexts';
 import SoftwareSettingsDialog from './components/settings/SoftwareSettingsDialog';
+import NGDUDataLoader from './NGDUDataLoader';
 
 const TabPanel = (props) => {
   const { children, value, index, ...other } = props;
@@ -80,6 +80,9 @@ const App = () => {
   const [staticTabs] = useState([
     { id: 'all', label: 'Все измерения', 
       content: <DataTableProvider><DataTable /></DataTableProvider> 
+    },
+    {
+      id: 'auxdata', label: 'НГДУ', content: <NGDUDataLoader />
     },
     { id: 'import', label: 'Импорт из файлов', content: 'Содержимое вкладки Импорт из файлов' },
   ]);
