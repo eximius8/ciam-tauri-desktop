@@ -24,10 +24,18 @@ export const DBProvider = props => {
         return [];
     };
 
+    const executeQuery = async (query, params) => {
+        if (!isDBLoading) {
+            return await db.execute(query, params)
+        }
+        return [];
+    };
+
     const value = {
         db,
         isDBLoading,
-        selectQuery     
+        selectQuery,
+        executeQuery  
     };    
     
   

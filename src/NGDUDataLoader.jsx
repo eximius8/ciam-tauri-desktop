@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
@@ -14,12 +14,15 @@ import { fetch } from '@tauri-apps/plugin-http';
 
 
 import authService from './authService';
+import DatabaseTable from './components/NGDUdata/NGDUDBtable';
+import { DBContext } from './contexts/dbcontext';
 
 const NGDUDataLoader = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const { executeQuery } = useContext(DBContext);
 
   // Function to fetch data from the NGDU endpoint
   const fetchNGDUData = async () => {
@@ -75,7 +78,11 @@ const NGDUDataLoader = () => {
 
       const result = await response.json();
       console.log("API Response:", result);
-      
+      result.forEach(element => {        
+        executeQuery('INSERT OR REPLACE INTO ngdu (id, uid, baseId, abbrev, title) VALUES ($1, $2, $3, $4, $5)', 
+          [element.id, element.uid, element.baseId, element.abbrev, element.title])
+      });
+      // executeQuery
       // Check if result is what we expect (an array)
       if (result && Array.isArray(result)) {
         setData(result);
@@ -111,9 +118,9 @@ const NGDUDataLoader = () => {
   };
 
   // Load data when component mounts
-  useEffect(() => {
+/*  useEffect(() => {
     fetchNGDUData();
-  }, []);
+  }, []);*/
 
   const handleRefresh = () => {
     fetchNGDUData();
@@ -121,10 +128,9 @@ const NGDUDataLoader = () => {
 
   return (
     <Paper elevation={3} sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h5" component="h2">
-          NGDU Data
-        </Typography>
+      <DatabaseTable />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', my: 2 }}>
+       
         
         <Box>
           <Button 
@@ -136,8 +142,6 @@ const NGDUDataLoader = () => {
           >
             Refresh
           </Button>
-          
-          
         </Box>
       </Box>
       
