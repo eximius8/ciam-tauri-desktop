@@ -15,7 +15,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import SettingsIcon from '@mui/icons-material/Settings';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
-import { useAuth } from '../../contexts/authcontext';
+import { useAuth } from '../contexts/authcontext';
 
 const SoftwareSettingsDialog = () => {
   const { 

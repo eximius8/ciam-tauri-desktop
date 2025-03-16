@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { app } from '@tauri-apps/api';
+import React, { useState } from 'react';
 import { 
   Tabs, 
   Tab, 
@@ -7,89 +6,33 @@ import {
   Menu, 
   MenuItem, 
   AppBar, 
-  Toolbar,
-  Typography
+  Toolbar
 } from '@mui/material';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 
-import CloseIcon from '@mui/icons-material/Close';
+import Measurements from './pages/measurements/Measurements';
+import SoftwareSettingsDialog from './components/SoftwareSettingsDialog';
+import RemoteData from './pages/remotedata/RemoteData';
 
-import DataTable from './DataTable';
-import { DataTableProvider } from './contexts/datatablecontexts';
-import SoftwareSettingsDialog from './components/settings/SoftwareSettingsDialog';
-import NGDUDataLoader from './NGDUDataLoader';
+import { TabPanel } from './components/TabPanel';
+import { CloseableTab } from './components/CloseableTab';
 
-const TabPanel = (props) => {
-  const { children, value, index, ...other } = props;
 
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`tabpanel-${index}`}
-      aria-labelledby={`tab-${index}`}
-      style={{ padding: '16px' }}
-      {...other}
-    >
-      {value === index && <Box>{children}</Box>}
-    </div>
-  );
-};
-
-// Custom Tab component with close button
-const CloseableTab = ({ label, onClose, ...props }) => {
-  const handleCloseClick = (event) => {
-    event.stopPropagation();
-    onClose();
-  };
-
-  return (
-    <Tab
-      {...props}
-      label={
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {label}
-          <Box
-            component="span"
-            onClick={handleCloseClick}
-            sx={{ 
-              ml: 1, 
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 20,
-              height: 20,
-              borderRadius: '50%',
-              cursor: 'pointer',
-              '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.04)'
-              }
-            }}
-          >
-            <CloseIcon fontSize="small" />
-          </Box>
-        </Box>
-      }
-    />
-  );
-};
 
 const App = () => {
   const [value, setValue] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
-  const [version, setVersion] = useState('');
 
-  useEffect(() => {
-    app.getVersion().then(version => setVersion(version));
-  }, []);
+
+
   
   // Initial static tabs
   const [staticTabs] = useState([
     { id: 'all', label: 'Все измерения', 
-      content: <DataTableProvider><DataTable /></DataTableProvider> 
+      content: <Measurements />
     },
     {
-      id: 'auxdata', label: 'НГДУ', content: <NGDUDataLoader />
+      id: 'auxdata', label: 'НГДУ', content: <RemoteData />
     },
     { id: 'import', label: 'Импорт из файлов', content: 'Содержимое вкладки Импорт из файлов' },
   ]);
@@ -172,8 +115,7 @@ const App = () => {
   };
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <Typography>{version}</Typography>
+    <Box sx={{ width: '100%' }}>      
       <AppBar position="static" color="default" elevation={1}>
         <Toolbar disableGutters sx={{ minHeight: '48px' }}>
           <Box sx={{ flexGrow: 1, display: 'flex' }}>
@@ -207,8 +149,7 @@ const App = () => {
               />
             </Tabs>
           </Box>
-          <SoftwareSettingsDialog />
-          
+          <SoftwareSettingsDialog />          
         </Toolbar>
       </AppBar>
       

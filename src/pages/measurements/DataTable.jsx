@@ -14,10 +14,10 @@ import {
 } from '@mui/material';
 
 
-import ConfirmDeleteDialog from './components/datatable/ConfirmDeleteDialog';
-import TableToolBar from './components/datatable/TableToolBar';
-import { DataTableContext } from './contexts/datatablecontexts';
-import { DBContext } from './contexts/dbcontext';
+import ConfirmDeleteDialog from '../../components/datatable/ConfirmDeleteDialog';
+import TableToolBar from '../../components/datatable/TableToolBar';
+import { DataTableContext } from '../../contexts/datatablecontexts';
+import { DBContext } from '../../contexts/dbcontext';
 
 
 // Sample data - replace with your actual data source

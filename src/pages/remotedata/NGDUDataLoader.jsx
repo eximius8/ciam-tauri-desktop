@@ -9,10 +9,10 @@ import LinearProgress from '@mui/material/LinearProgress';
 import CardContent from '@mui/material/CardContent';
 import CardActions from '@mui/material/CardActions';
 import SyncIcon from '@mui/icons-material/Sync';
-import { useNgduData } from './hooks/getNGDU';
-import { useWorkshopData } from './hooks/getWorkshop';
-import { useAuth } from './contexts/authcontext';
-import DatabaseTable from './components/NGDUdata/NGDUDBtable';
+import { useNgduData } from '../../hooks/getNGDU';
+import { useWorkshopData } from '../../hooks/getWorkshop';
+import { useAuth } from '../../contexts/authcontext';
+import DatabaseTable from '../../components/NGDUdata/NGDUDBtable';
 
 
 const NgduSyncComponent = () => {
