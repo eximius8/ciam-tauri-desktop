@@ -25,7 +25,6 @@ class AuthService {
   
     // Get the stored token
     getToken() {
-        console.log(this.token);
       return this.token;
     }
   
@@ -53,9 +52,7 @@ class AuthService {
   
     // Authenticate and get new token
     async authenticate(apiUri, username, password) {
-        try {
-          console.log(password);
-      
+        try {      
           const response = await fetch(`${apiUri}/api/auth/signin`, {
             method: 'POST',
             headers: {

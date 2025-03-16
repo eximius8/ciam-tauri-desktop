@@ -27,6 +27,10 @@ export const AuthProvider = ({ children }) => {
   const [password, setPassword] = useState(localStorage.getItem('password') || '');
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
+
+  const clearToken = () => {
+    setToken('');
+  };
   
   // Initialize auth state
   useEffect(() => {

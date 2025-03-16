@@ -7,31 +7,37 @@ import {
   TableHead, 
   TableRow, 
   Paper, 
-  Typography 
+  Typography, 
+  Button
 } from '@mui/material';
 import { DBContext } from '../../contexts/dbcontext';
 
 
 const DatabaseTable = () => {
 
-  const { selectQuery } = useContext(DBContext);
-  const [ngduNum, setNgdunum] = useState(0)
-  // Sample data - replace with your actual database data
+  const { selectQuery, executeQuery } = useContext(DBContext);
+  const [ ngduNum, setNgdunum] = useState(0);
+  const [ workshopNum, setworkshopNum ] = useState(0);
+  const [ wellNum, setwellNum ] = useState(0);
+  const [ tableCleared, setTableCleared ] = useState(false);
 
   useEffect(() => {      
-      async function loadNGDUNum() {
+      async function loadItemNum() {
         const ngdu = await selectQuery('SELECT count(1) FROM ngdu', []);
-        setNgdunum(ngdu[0]['count(1)']); 
-        
+        setNgdunum(ngdu[0]['count(1)']);
+        const workshop = await selectQuery('SELECT count(1) FROM workshop', []);
+        setworkshopNum(workshop[0]['count(1)']);
+        const well = await selectQuery('SELECT count(1) FROM well', []);
+        setwellNum(well[0]['count(1)']);
       }
-      loadNGDUNum();     
+      loadItemNum();     
      
-    }, []);
+    }, [selectQuery, executeQuery, tableCleared]);
   
   const rows = [
     { name: 'НГДУ', count: ngduNum },
-    { name: 'Цеха', count: 48 },
-    { name: 'Скважины', count: 1256 }
+    { name: 'Цеха', count: workshopNum },
+    { name: 'Скважины', count: wellNum }
   ];
 
   return (

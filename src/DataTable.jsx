@@ -93,7 +93,7 @@ const DataTable = () => {
     //setRows(sampleData);
     async function loadMeasurements() {
       const measurements = await selectQuery('SELECT * FROM measurements', []);
-      console.log(measurements);
+
 
       setRows(measurements);
     }

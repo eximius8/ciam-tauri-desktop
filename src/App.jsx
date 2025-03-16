@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { app } from '@tauri-apps/api';
 import { 
   Tabs, 
   Tab, 
@@ -6,7 +7,8 @@ import {
   Menu, 
   MenuItem, 
   AppBar, 
-  Toolbar
+  Toolbar,
+  Typography
 } from '@mui/material';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 
@@ -75,6 +77,11 @@ const CloseableTab = ({ label, onClose, ...props }) => {
 const App = () => {
   const [value, setValue] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
+  const [version, setVersion] = useState('');
+
+  useEffect(() => {
+    app.getVersion().then(version => setVersion(version));
+  }, []);
   
   // Initial static tabs
   const [staticTabs] = useState([
@@ -166,6 +173,7 @@ const App = () => {
 
   return (
     <Box sx={{ width: '100%' }}>
+      <Typography>{version}</Typography>
       <AppBar position="static" color="default" elevation={1}>
         <Toolbar disableGutters sx={{ minHeight: '48px' }}>
           <Box sx={{ flexGrow: 1, display: 'flex' }}>

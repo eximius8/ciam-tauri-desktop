@@ -1,199 +1,217 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState } from 'react';
+import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
-import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import Divider from '@mui/material/Divider';
-import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
 import Box from '@mui/material/Box';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import { fetch } from '@tauri-apps/plugin-http';
-
-
-import authService from './authService';
+import LinearProgress from '@mui/material/LinearProgress';
+import CardContent from '@mui/material/CardContent';
+import CardActions from '@mui/material/CardActions';
+import SyncIcon from '@mui/icons-material/Sync';
+import { useNgduData } from './hooks/getNGDU';
+import { useWorkshopData } from './hooks/getWorkshop';
+import { useAuth } from './contexts/authcontext';
 import DatabaseTable from './components/NGDUdata/NGDUDBtable';
-import { DBContext } from './contexts/dbcontext';
 
-const NGDUDataLoader = () => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState(null);
-  const { executeQuery } = useContext(DBContext);
 
-  // Function to fetch data from the NGDU endpoint
-  const fetchNGDUData = async () => {
-    setLoading(true);
-    setError(null);
+const NgduSyncComponent = () => {
+  const { isAuthenticated, apiUri } = useAuth();
+  const { fetchAndSaveNgduData, isLoading, error, syncStatus } = useNgduData();
 
-    try {
-      // Get the API URI from localStorage
-      const apiUri = localStorage.getItem('apiUri');
-      
-      if (!apiUri) {
-        throw new Error('API URI not configured. Please check settings.');
-      }
+  const [lastSyncTime, setLastSyncTime] = useState(null);
 
-      // Check if we have a valid token, otherwise try to get one
-      if (!authService.isAuthenticated()) {
-        const username = localStorage.getItem('username');
-        const password = localStorage.getItem('password');
-
-                
-        if (!username || !password) {
-          throw new Error('Authentication credentials missing. Please configure in settings.');
-        }
-        
-        const authResult = await authService.authenticate(apiUri, username, password);
-        if (!authResult.success) {
-          throw new Error('Authentication failed. Please check your credentials.');
-        }
-      }
-
-      // Construct the full endpoint URL
-      const endpoint = `${apiUri}/proxy/ciam-object-tree-back/api/v1/ngdu`;
-      
-      // Get authorization headers with the token
-      const headers = {
-        'Content-Type': 'application/json',
-        ...authService.getAuthHeaders()
-      };
-
-      const response = await fetch(endpoint, {
-        method: 'GET',
-        headers: headers
-      });
-
-      if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          // Token might be expired or invalid
-          authService.clearToken();
-          throw new Error('Authentication token expired. Please reauthenticate.');
-        }
-        throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      console.log("API Response:", result);
-      result.forEach(element => {        
-        executeQuery('INSERT OR REPLACE INTO ngdu (id, uid, baseId, abbrev, title) VALUES ($1, $2, $3, $4, $5)', 
-          [element.id, element.uid, element.baseId, element.abbrev, element.title])
-      });
-      // executeQuery
-      // Check if result is what we expect (an array)
-      if (result && Array.isArray(result)) {
-        setData(result);
-      } else if (result && typeof result === 'object') {
-        // If it's an object but not an array, it might be wrapped in a property
-        // Common API patterns include { data: [...] } or { results: [...] }
-        const possibleArrays = ['data', 'results', 'items', 'records', 'ngdu'];
-        for (const key of possibleArrays) {
-          if (Array.isArray(result[key])) {
-            console.log(`Found array in response.${key}`);
-            setData(result[key]);
-            break;
-          }
-        }
-        
-        // If we couldn't find an array, just use the object as is
-        if (!Array.isArray(data)) {
-          console.log("Could not find array in response, using raw response");
-          setData(result);
-        }
-      } else {
-        console.error("Unexpected response format:", result);
-        setData([]);
-      }
-      
-      setLastUpdated(new Date());
-    } catch (err) {
-      console.error('Error fetching NGDU data:', err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
+  const clearDB = async () => {
+    await executeQuery('DELETE FROM workshop');
+    await executeQuery('DELETE FROM ngdu');
+    setTableCleared(true);
+  }
+  
+  const handleSync = async () => {
+    const result = await fetchAndSaveNgduData();
+    
+    if (result.success) {
+      setLastSyncTime(new Date());
     }
   };
-
-  // Load data when component mounts
-/*  useEffect(() => {
-    fetchNGDUData();
-  }, []);*/
-
-  const handleRefresh = () => {
-    fetchNGDUData();
-  };
-
+  
   return (
-    <Paper elevation={3} sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
-      <DatabaseTable />
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', my: 2 }}>
-       
+    <>
+      <DatabaseTable/>
+      <Box>
+        <Button 
+            variant="contained"
+            color="success"
+            startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <SyncIcon />}
+            disabled={isLoading || !isAuthenticated() || !apiUri}
+            onClick={handleSync}
+            sx={{ my: 2 }}
+        >
+          Синхронизировать базу данных
+        </Button>
         
-        <Box>
-          <Button 
-            variant="outlined"
-            startIcon={<RefreshIcon />}
-            onClick={handleRefresh}
-            disabled={loading}
-            sx={{ mr: 1 }}
-          >
-            Refresh
-          </Button>
-        </Box>
       </Box>
-      
-      {lastUpdated && (
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
-          Last updated: {lastUpdated.toLocaleString()}
-        </Typography>
-      )}
-      
-      {!authService.isAuthenticated() && (
-        <Alert severity="warning" sx={{ mb: 2 }}>
-          Not authenticated. Please configure credentials in settings.
-        </Alert>
-      )}
-      
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : error ? (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      ) : !data || data.length === 0 ? (
-        <Alert severity="info">
-          No NGDU data available. Please check your connection settings.
-        </Alert>
-      ) : (
-        <List>
-          {Array.isArray(data) ? data.map((item, index) => (
-            <React.Fragment key={item?.id || index}>
-              <ListItem>
-                <ListItemText 
-                  primary={item?.name || `NGDU Item ${index + 1}`}
-                  secondary={
-                    <Typography variant="body2" component="span">
-                      {item?.description || 'No description available'}
-                    </Typography>
-                  }
-                />
-              </ListItem>
-              {index < data.length - 1 && <Divider />}
-            </React.Fragment>
-          )) : (
-            <Alert severity="warning">
-              Data received is not in the expected format. Received: {typeof data}
+       
+
+      <Card variant="outlined">
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            НГДУ Синхронизация
+          </Typography>
+          
+          {!isAuthenticated() && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              Необходима авторизация для синхронизации данных.
             </Alert>
           )}
-        </List>
-      )}
-    </Paper>
+          
+          {!apiUri && (
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              API URI не настроен. Пожалуйста, проверьте настройки.
+            </Alert>
+          )}
+          
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+          
+          {syncStatus && (
+            <Alert 
+              severity={syncStatus.status === 'completed' ? 'success' : 
+                      syncStatus.status === 'failed' ? 'error' : 'info'}
+              sx={{ mb: 2 }}
+            >
+              {syncStatus.message}
+            </Alert>
+          )}
+          
+          {lastSyncTime && (
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Последняя синхронизация: {lastSyncTime.toLocaleString()}
+            </Typography>
+          )}
+        </CardContent>
+        
+        <CardActions>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <SyncIcon />}
+            disabled={isLoading || !isAuthenticated() || !apiUri}
+            onClick={handleSync}
+            fullWidth
+          >
+            {isLoading ? 'Синхронизация...' : 'Синхронизировать НГДУ'}
+          </Button>
+        </CardActions>
+      </Card>
+      <WorkshopSyncComponent />
+    </>
   );
 };
 
-export default NGDUDataLoader;
+
+/**
+ * Component to trigger Workshop data synchronization
+ * @param {Object} props
+ * @param {function} props.executeQuery - Function to execute database queries
+ */
+const WorkshopSyncComponent = () => {
+  const { isAuthenticated, apiUri } = useAuth();
+  const { 
+    fetchAndSaveWorkshopsData, 
+    isLoading, 
+    error, 
+    syncStatus, 
+    progress 
+  } = useWorkshopData();
+  const [lastSyncTime, setLastSyncTime] = useState(null);
+  
+  const handleSync = async () => {
+    const result = await fetchAndSaveWorkshopsData();
+    
+    if (result.success) {
+      setLastSyncTime(new Date());
+    }
+  };
+  
+  // Calculate progress percentage
+  const progressPercentage = progress.total > 0 
+    ? Math.round((progress.current / progress.total) * 100) 
+    : 0;
+  
+  return (
+    <Card variant="outlined">
+      <CardContent>
+        <Typography variant="h6" gutterBottom>
+          Синхронизация Цехов
+        </Typography>
+        
+        {!isAuthenticated() && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            Необходима авторизация для синхронизации данных.
+          </Alert>
+        )}
+        
+        {!apiUri && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            API URI не настроен. Пожалуйста, проверьте настройки.
+          </Alert>
+        )}
+        
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+        
+        {syncStatus && (
+          <Alert 
+            severity={syncStatus.status === 'completed' ? 'success' : 
+                     syncStatus.status === 'failed' ? 'error' : 'info'}
+            sx={{ mb: 2 }}
+          >
+            {syncStatus.message}
+          </Alert>
+        )}
+        
+        {isLoading && progress.total > 0 && (
+          <Box sx={{ mb: 2 }}>
+            <LinearProgress 
+              variant="determinate" 
+              value={progressPercentage} 
+              sx={{ mb: 1 }}
+            />
+            <Typography variant="body2" color="text.secondary">
+              Прогресс: {progress.current} из {progress.total} страниц ({progressPercentage}%)
+            </Typography>
+          </Box>
+        )}
+        
+        {lastSyncTime && (
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Последняя синхронизация: {lastSyncTime.toLocaleString()}
+          </Typography>
+        )}
+      </CardContent>
+      
+      <CardActions>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <SyncIcon />}
+          disabled={isLoading || !isAuthenticated() || !apiUri}
+          onClick={handleSync}
+          fullWidth
+        >
+          {isLoading ? 'Синхронизация...' : 'Синхронизировать Цеха'}
+        </Button>
+      </CardActions>
+    </Card>
+  );
+};
+
+
+export default NgduSyncComponent;
