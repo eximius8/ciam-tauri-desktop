@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
@@ -9,29 +9,52 @@ import LinearProgress from '@mui/material/LinearProgress';
 import CardContent from '@mui/material/CardContent';
 import CardActions from '@mui/material/CardActions';
 import SyncIcon from '@mui/icons-material/Sync';
-import { useNgduData } from '../../hooks/getNGDU';
-import { useWorkshopData } from '../../hooks/getWorkshop';
+import { useNgduData } from '../../hooks/useNgduData';
+import { useWorkshopData } from '../../hooks/useWorkshopData';
 import { useAuth } from '../../contexts/authcontext';
 import RemoteDataTable from '../../components/remotedata/RemoteDataTable';
+import { DBContext } from '../../contexts/dbcontext';
 
 
 
 export default function RemoteData() {
   const { isAuthenticated, apiUri } = useAuth();
-  const { fetchAndSaveNgduData, isLoading, error, syncStatus } = useNgduData();
+  const { fetchAndSaveNgduData, isLoadingNgdu, errorNgdu, syncStatusNgdu } = useNgduData();
+  const { fetchAndSaveWorkshopsData, isLoadingWorkshop, errorWorkshop, syncStatusWorkshop, progressWorkshop } = useWorkshopData();
 
   const [lastSyncTime, setLastSyncTime] = useState(null);
-  const [ngduNum, setngduNum] = useState(0);
-  const [workshopNum, setworkshopNum] = useState(0);
-  const [wellNum, setwellNum] = useState(0);
+  const [ngduNum, setNgduNum] = useState(0);
+  const [workshopNum, setWorkshopNum] = useState(0);
+  const [wellNum, setWellNum] = useState(0);
   const [measurementNum, setmeasurementNum] = useState(0);
+  const { selectQuery } = useContext(DBContext);
 
+  const isLoading = isLoadingNgdu && isLoadingWorkshop;
+  const error = errorNgdu || errorWorkshop;
+  const syncStatus = syncStatusNgdu || syncStatusWorkshop;
+
+  useEffect(() => {
+
+    async function loadItemNum() {
+        const ngdu = await selectQuery('SELECT count(1) FROM ngdu', []);
+        setNgduNum(ngdu[0]['count(1)']);
+        const workshop = await selectQuery('SELECT count(1) FROM workshop', []);
+        setWorkshopNum(workshop[0]['count(1)']);
+        const well = await selectQuery('SELECT count(1) FROM well', []);
+        setWellNum(well[0]['count(1)']);
+        const measurements = await selectQuery('SELECT count(1) FROM measurements', []);
+        setmeasurementNum(measurements[0]['count(1)']);
+      }
+      loadItemNum();
+    }, [lastSyncTime]
+  )
   
   
   const handleSync = async () => {
-    const result = await fetchAndSaveNgduData();
+    const resultNgdu = await fetchAndSaveNgduData();
+    const resultWorkshop = await fetchAndSaveWorkshopsData();
     
-    if (result.success) {
+    if (resultNgdu.success && resultWorkshop.success) {
       setLastSyncTime(new Date());
     }
   };

@@ -3,16 +3,12 @@ import { useAuth } from '../contexts/authcontext';
 import { useDatabase } from '../contexts/dbcontext';
 import { fetch } from '@tauri-apps/plugin-http';
 
-/**
- * Custom hook to fetch NGDU data and save it to the database
- * @param {function} executeQuery - Function to execute database queries
- * @returns {Object} - Functions and state for fetching and saving NGDU data
- */
+
 export const useNgduData = () => {
   const { executeQuery } = useDatabase()
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [syncStatus, setSyncStatus] = useState(null);
+  const [ isLoadingNgdu, setIsLoading] = useState(false);
+  const [ errorNgdu, setError] = useState(null);
+  const [ syncStatusNgdu, setSyncStatus] = useState(null);
   const { apiUri, getAuthHeaders, isAuthenticated } = useAuth();
   
   /**
@@ -102,8 +98,8 @@ export const useNgduData = () => {
   
   return {
     fetchAndSaveNgduData,
-    isLoading,
-    error,
-    syncStatus
+    isLoadingNgdu,
+    errorNgdu,
+    syncStatusNgdu
   };
 };

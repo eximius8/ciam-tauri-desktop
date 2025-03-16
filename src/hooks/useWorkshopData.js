@@ -10,17 +10,13 @@ import { useAuth } from '../contexts/authcontext';
  */
 export const useWorkshopData = () => {
   const { executeQuery } = useDatabase();
-  const [ isLoading, setIsLoading] = useState(false);
-  const [ error, setError] = useState(null);
-  const [ syncStatus, setSyncStatus] = useState(null);
-  const [ progress, setProgress] = useState({ current: 0, total: 0 });
+  const [ isLoadingWorkshop, setIsLoading] = useState(false);
+  const [ errorWorkshop, setError] = useState(null);
+  const [ syncStatusWorkshop, setSyncStatus] = useState(null);
+  const [ progressWorkshop, setProgress] = useState({ current: 0, total: 0 });
   const { apiUri, getAuthHeaders, isAuthenticated } = useAuth();
   
-  /**
-   * Fetch data from a specific page of workshops endpoint
-   * @param {number} page - Page number to fetch
-   * @returns {Promise<Object>} - API response data
-   */
+
   const fetchWorkshopsPage = async (page) => {
     if (!apiUri) {
       throw new Error('API URI is not configured');
@@ -43,11 +39,7 @@ export const useWorkshopData = () => {
     return await response.json();
   };
   
-  /**
-   * Save workshop data to the database
-   * @param {Array} workshops - Array of workshop objects
-   * @returns {Promise<number>} - Number of records saved
-   */
+
   const saveWorkshopsToDb = async (workshops) => {
    // await executeQuery('BEGIN TRANSACTION');
     
@@ -159,9 +151,9 @@ export const useWorkshopData = () => {
   
   return {
     fetchAndSaveWorkshopsData,
-    isLoading,
-    error,
-    syncStatus,
-    progress
+    isLoadingWorkshop,
+    errorWorkshop,
+    syncStatusWorkshop,
+    progressWorkshop
   };
 };
