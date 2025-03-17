@@ -13,6 +13,7 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import Measurements from './pages/measurements/Measurements';
 import SoftwareSettingsDialog from './components/SoftwareSettingsDialog';
 import RemoteData from './pages/remotedata/RemoteData';
+import FileBrowser from './pages/filereader/FileBrowser';
 
 import { TabPanel } from './components/TabPanel';
 import { CloseableTab } from './components/CloseableTab';
@@ -22,19 +23,23 @@ import { CloseableTab } from './components/CloseableTab';
 const App = () => {
   const [value, setValue] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
-
-
-
-  
   // Initial static tabs
   const [staticTabs] = useState([
-    { id: 'all', label: 'Все измерения', 
+    { 
+      id: 'all', 
+      label: 'Все измерения', 
       content: <Measurements />
     },
     {
-      id: 'auxdata', label: 'НГДУ', content: <RemoteData />
+      id: 'auxdata', 
+      label: 'НГДУ', 
+      content: <RemoteData />
     },
-    { id: 'import', label: 'Импорт из файлов', content: 'Содержимое вкладки Импорт из файлов' },
+    { 
+      id: 'import', 
+      label: 'Импорт из файлов', 
+      content: <FileBrowser />
+    },
   ]);
   
   // Dynamic tabs that can be added through dropdown
