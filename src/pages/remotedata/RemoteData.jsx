@@ -2,15 +2,11 @@ import React, { useEffect, useState, useContext } from 'react';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
-import Typography from '@mui/material/Typography';
-import Card from '@mui/material/Card';
 import Box from '@mui/material/Box';
-import LinearProgress from '@mui/material/LinearProgress';
-import CardContent from '@mui/material/CardContent';
-import CardActions from '@mui/material/CardActions';
 import SyncIcon from '@mui/icons-material/Sync';
 import { useNgduData } from '../../hooks/useNgduData';
 import { useWorkshopData } from '../../hooks/useWorkshopData';
+import { useWellData } from '../../hooks/useWellData';
 import useLocalStorage from '../../hooks/useLocalStorage';
 import { useAuth } from '../../contexts/authcontext';
 import RemoteDataTable from '../../components/remotedata/RemoteDataTable';
@@ -19,20 +15,24 @@ import { DBContext } from '../../contexts/dbcontext';
 
 
 export default function RemoteData() {
-  const { isAuthenticated, apiUri, tryauth } = useAuth();
+  const { authenticate, apiUri, username, password, isLoading: isLoadingAuth } = useAuth();
+
   const { fetchAndSaveNgduData, isLoadingNgdu, errorNgdu, syncStatusNgdu } = useNgduData();
   const { fetchAndSaveWorkshopsData, isLoadingWorkshop, errorWorkshop, syncStatusWorkshop, progressWorkshop } = useWorkshopData();
+  const { fetchAndSaveWellsData, isLoadingWell, errorWell, syncStatusWell, progressWell } = useWellData();
 
   const [ lastSyncTime, setLastSyncTime] = useLocalStorage('remotelastupdate', null);
+
   const [ ngduNum, setNgduNum] = useState(0);
   const [ workshopNum, setWorkshopNum] = useState(0);
   const [ wellNum, setWellNum] = useState(0);
   const [ measurementNum, setmeasurementNum] = useState(0);
-  const { selectQuery, clearDB } = useContext(DBContext);
+  const { selectQuery, clearDB, isDBLoading  } = useContext(DBContext);
   const [ error, setError ] = useState('');
 
-  const isLoading = isLoadingNgdu && isLoadingWorkshop;
-  
+  const [isLoading, setIsLoading] = useState(isLoadingNgdu && isLoadingWorkshop && isLoadingAuth && isLoadingWell);
+
+  const settingsNotDone = !apiUri || !username || !password;  
  
   useEffect(() => {
 
@@ -47,7 +47,7 @@ export default function RemoteData() {
         setmeasurementNum(measurements[0]['count(1)']);
       }
       loadItemNum();
-    }, [lastSyncTime]
+    }, [lastSyncTime, apiUri, username, password, isLoading, isDBLoading]
   )
   
   const handleClearDB = async () => {
@@ -56,15 +56,28 @@ export default function RemoteData() {
   }
   
   const handleSync = async () => {
-    try {
-        await tryauth()
-    }catch {(error) => setError(error.message)};    
-    const resultNgdu = await fetchAndSaveNgduData();
-    const resultWorkshop = await fetchAndSaveWorkshopsData();
-    
-    if (resultNgdu.success && resultWorkshop.success) {
-      let now = new Date();
-      setLastSyncTime(now.toLocaleString());
+    setIsLoading(true);
+    setError('');
+    const auth = await authenticate(apiUri, username, password);
+    setIsLoading(false)
+    if (!auth.success) {
+      setError(`Не удалось подключиться: ${auth.error}`)
+    }else{
+      const resultNgdu = await fetchAndSaveNgduData();
+      if (resultNgdu.success) {
+        let now = new Date();
+        setLastSyncTime(now.toLocaleString());
+      }
+      const resultWorkshop = await fetchAndSaveWorkshopsData();      
+      if (resultWorkshop.success) {
+        let now = new Date();
+        setLastSyncTime(now.toLocaleString());
+      }
+      const resultWell = await fetchAndSaveWellsData();      
+      if (resultWell.success) {
+        let now = new Date();
+        setLastSyncTime(now.toLocaleString());
+      }
     }
   };
   
@@ -74,29 +87,35 @@ export default function RemoteData() {
         ngduNum={ngduNum} 
         workshopNum={workshopNum} 
         wellNum={wellNum} 
-        measurementNum={ measurementNum} 
+        measurementNum={measurementNum} 
       />
-      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+
+      {lastSyncTime && 
+        <Alert severity="info" sx={{ my: 2 }}>
+            Последняя синхронизация: {lastSyncTime}
+        </Alert>
+      }
+      <Box sx={{ display: 'flex', my: 2, justifyContent: 'space-between' }}>
         <Button 
             variant="contained"
             color="success"
             startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <SyncIcon />}
-            disabled={isLoading || !apiUri}
-            onClick={handleSync}
-            sx={{ my: 2 }}
+            disabled={isLoading || !apiUri || !username || !password}
+            onClick={handleSync}            
         >
           Синхронизировать базу данных
         </Button>
         <Button 
             variant="contained"
             color="error"
-            startIcon={<SyncIcon />}            
-            onClick={handleClearDB}
-            sx={{ my: 2, ml: 10 }}
+            startIcon={<SyncIcon />}
+            disabled={isLoading}
+            onClick={handleClearDB}            
         >
           Очистить базу данных
         </Button>        
       </Box>
+      
       {isLoadingNgdu && 
         <Alert severity="info" sx={{ mb: 2 }}>
             Синхронизую таблицу НГДУ
@@ -106,44 +125,44 @@ export default function RemoteData() {
         <Alert severity="info" sx={{ mb: 2 }}>
             Синхронизую таблицу Цехов
         </Alert>
-      }
-        {!isAuthenticated() && (
-            <Alert severity="warning" sx={{ mb: 2 }}>
-              Необходима авторизация для синхронизации данных.
-            </Alert>
-        )}
-        
-        {!apiUri && (
+      } 
+      {settingsNotDone && (
         <Alert severity="warning" sx={{ mb: 2 }}>
-            API URI не настроен. Пожалуйста, проверьте настройки.
+            Пожалуйста, проверьте настройки соединения
         </Alert>
-        )}
-        
-        {error && (
+      )}        
+      {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
+          {error}
         </Alert>
-        )}
-        
-        
-        {syncStatusNgdu && (
-            <Alert 
-                severity={syncStatusNgdu.status === 'completed' ? 'success' : 
-                    syncStatusNgdu.status === 'failed' ? 'error' : 'info'}
-                sx={{ mb: 2 }}
-            >
-                {syncStatusNgdu.message}
-            </Alert>
-        )}       
-        {syncStatusWorkshop && (
-            <Alert 
-                severity={syncStatusWorkshop.status === 'completed' ? 'success' : 
-                    syncStatusWorkshop.status === 'failed' ? 'error' : 'info'}
-                sx={{ mb: 2 }}
-            >
-                {syncStatusWorkshop.message}
-            </Alert>
-        )}       
+      )}
+      {syncStatusNgdu && (
+          <Alert 
+              severity={syncStatusNgdu.status === 'completed' ? 'success' : 
+                  syncStatusNgdu.status === 'failed' ? 'error' : 'info'}
+              sx={{ mb: 2 }}
+          >
+              {syncStatusNgdu.message}
+          </Alert>
+      )}       
+      {syncStatusWorkshop && (
+          <Alert 
+              severity={syncStatusWorkshop.status === 'completed' ? 'success' : 
+                  syncStatusWorkshop.status === 'failed' ? 'error' : 'info'}
+              sx={{ mb: 2 }}
+          >
+              {syncStatusWorkshop.message}
+          </Alert>
+      )}       
+      {syncStatusWell && (
+          <Alert 
+              severity={syncStatusWell.status === 'completed' ? 'success' : 
+                syncStatusWell.status === 'failed' ? 'error' : 'info'}
+              sx={{ mb: 2 }}
+          >
+              {syncStatusWell.message}
+          </Alert>
+      )}       
     </>
   );
 };

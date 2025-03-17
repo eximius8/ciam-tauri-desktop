@@ -71,12 +71,12 @@ export const useNgduData = () => {
         // Update status with success
         setSyncStatus({ 
           status: 'completed', 
-          message: `Successfully synced ${result.length} NGDU records` 
+          message: `Успешно обновлено / добавлено ${result.length} записей НГДУ` 
         });
         
         return { 
           success: true, 
-          message: `Successfully synced ${result.length} NGDU records`,
+          message: `Успешно обновлено / добавлено ${result.length} записей НГДУ`,
           count: result.length
         };
       } catch (dbError) {

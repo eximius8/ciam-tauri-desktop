@@ -45,7 +45,7 @@ export const DBProvider = props => {
     };
 
     const clearDB = async () => {
-      await executeQuery('DELETE FROM workshop; DELETE FROM ngdu; DELETE FROM well; DELETE FROM measurements');      
+      await executeQuery('DELETE FROM measurements; DELETE FROM well; DELETE FROM workshop; DELETE FROM ngdu');      
     }
 
     const value = {

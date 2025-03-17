@@ -30,15 +30,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
 
-  const tryauth = async () => {
-    if (apiUri && username && password){
-      await authenticate(apiUri, username, password)
-    }else{
-      throw new Error('Необходимо указать все данные для входа');
-    };
-  }
-
-  const clearToken = () => {
+    const clearToken = () => {
     setToken('');
   };
   
@@ -168,7 +160,7 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(false);
       return {
         success: false,
-        error: error.message
+        error: error
       };
     }
   };
@@ -189,16 +181,18 @@ export const AuthProvider = ({ children }) => {
   const value = {
     token,
     user,
-    apiUri,
-    username,
-    password,
     isLoading,
     isAuthenticated,
     authenticate,
     logout,
     getAuthHeaders,
-    saveCredentials,
-    tryauth
+    saveCredentials,   
+    apiUri,
+    username,
+    password,
+    setApiUri,
+    setUsername,
+    setPassword
   };
   
   return (

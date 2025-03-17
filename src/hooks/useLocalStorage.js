@@ -36,7 +36,6 @@ const useLocalStorage = (key, defaultValue) => {
         localStorage.setItem(key, JSON.stringify(newValue));
         setLocalStorageValue(newValue)
     }
-    console.log(localStorageValue)
     return [localStorageValue, setLocalStorageStateValue]
 }
 

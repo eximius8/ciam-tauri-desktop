@@ -16,18 +16,23 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import { useAuth } from '../contexts/authcontext';
-import useLocalStorage from '../hooks/useLocalStorage';
+
 
 const SoftwareSettingsDialog = () => {
   const {
     authenticate,
-    saveCredentials
+    apiUri,
+    username,
+    password,
+    setApiUri,
+    setUsername,
+    setPassword
   } = useAuth();
 
   const [open, setOpen] = useState(false);
-  const [apiUri, setApiUri] = useLocalStorage('apiUri', '');
-  const [username, setUsername] = useLocalStorage('username', '');
-  const [password, setPassword] = useLocalStorage('password', '');
+  //const [apiUri, setApiUri] = useLocalStorage('apiUri', '');
+  //const [username, setUsername] = useLocalStorage('username', '');
+  //const [password, setPassword] = useLocalStorage('password', '');
   const [verificationStatus, setVerificationStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -66,7 +71,7 @@ const SoftwareSettingsDialog = () => {
       } else {
         setVerificationStatus({
           success: false,
-          message: result.error || 'Проверка прошла неудачно'
+          message: result.error.message || 'Проверка прошла неудачно'
         });
       }
     } catch (error) {
