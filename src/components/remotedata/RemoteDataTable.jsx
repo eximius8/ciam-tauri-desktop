@@ -6,14 +6,10 @@ import {
   TableHead, 
   TableRow, 
   Paper, 
-  Typography, 
-
+  Typography
 } from '@mui/material';
 
-
-
 const RemoteDataTable = ({ngduNum, workshopNum, wellNum, measurementNum }) => {
-
    
   const rows = [
     { name: 'НГДУ', count: ngduNum },
@@ -28,7 +24,7 @@ const RemoteDataTable = ({ngduNum, workshopNum, wellNum, measurementNum }) => {
         Информация о базе данных
       </Typography>
       
-      <TableContainer component={Paper} className="shadow-md mt-3">
+      <TableContainer component={Paper} className="shadow-md mt-4">
         <Table aria-label="database records table">
           <TableHead>
             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>

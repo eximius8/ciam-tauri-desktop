@@ -1,6 +1,7 @@
 // authContext.js
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { fetch } from '@tauri-apps/plugin-http';
+import useLocalStorage from '../hooks/useLocalStorage';
 
 // Create the authentication context
 const AuthContext = createContext(null);
@@ -22,11 +23,20 @@ export const AuthProvider = ({ children }) => {
       ? new Date(localStorage.getItem('tokenExpiry')) 
       : null
   );
-  const [apiUri, setApiUri] = useState(localStorage.getItem('apiUri') || '');
-  const [username, setUsername] = useState(localStorage.getItem('username') || '');
-  const [password, setPassword] = useState(localStorage.getItem('password') || '');
+  const [apiUri, setApiUri] = useLocalStorage('apiUri', '');
+  const [username, setUsername] = useLocalStorage('username', '');
+  const [password, setPassword] = useLocalStorage('password', '');
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
+
+
+  const tryauth = async () => {
+    if (apiUri && username && password){
+      await authenticate(apiUri, username, password)
+    }else{
+      throw new Error('Необходимо указать все данные для входа');
+    };
+  }
 
   const clearToken = () => {
     setToken('');
@@ -84,9 +94,6 @@ export const AuthProvider = ({ children }) => {
     setUsername(user);
     setPassword(pass);
     
-    localStorage.setItem('apiUri', apiUrl);
-    localStorage.setItem('username', user);
-    localStorage.setItem('password', pass);
   };
   
   // Clear all auth data
@@ -100,9 +107,9 @@ export const AuthProvider = ({ children }) => {
     
     localStorage.removeItem('authToken');
     localStorage.removeItem('tokenExpiry');
-    localStorage.removeItem('apiUri');
-    localStorage.removeItem('username');
-    localStorage.removeItem('password');
+   // localStorage.removeItem('apiUri');
+  //  localStorage.removeItem('username');
+  //  localStorage.removeItem('password');
   };
   
   // Authenticate user
@@ -190,7 +197,8 @@ export const AuthProvider = ({ children }) => {
     authenticate,
     logout,
     getAuthHeaders,
-    saveCredentials
+    saveCredentials,
+    tryauth
   };
   
   return (

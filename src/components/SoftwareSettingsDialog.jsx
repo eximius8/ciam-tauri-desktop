@@ -16,30 +16,21 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
 import { useAuth } from '../contexts/authcontext';
+import useLocalStorage from '../hooks/useLocalStorage';
 
 const SoftwareSettingsDialog = () => {
-  const { 
-    apiUri: savedApiUri, 
-    username: savedUsername, 
-    password: savedPassword,
+  const {
     authenticate,
     saveCredentials
   } = useAuth();
 
   const [open, setOpen] = useState(false);
-  const [apiUri, setApiUri] = useState(savedApiUri || '');
-  const [username, setUsername] = useState(savedUsername || '');
-  const [password, setPassword] = useState(savedPassword || '');
-  const [rememberCredentials, setRememberCredentials] = useState(true);
+  const [apiUri, setApiUri] = useLocalStorage('apiUri', '');
+  const [username, setUsername] = useLocalStorage('username', '');
+  const [password, setPassword] = useLocalStorage('password', '');
   const [verificationStatus, setVerificationStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Update local state when context values change
-  useEffect(() => {
-    if (savedApiUri) setApiUri(savedApiUri);
-    if (savedUsername) setUsername(savedUsername);
-    if (savedPassword) setPassword(savedPassword);
-  }, [savedApiUri, savedUsername, savedPassword]);
+  
 
   const handleOpen = () => {
     setOpen(true);
@@ -65,7 +56,7 @@ const SoftwareSettingsDialog = () => {
 
     try {
       // Use the authenticate method from the auth context
-      const result = await authenticate(apiUri, username, password, rememberCredentials);
+      const result = await authenticate(apiUri, username, password);
 
       if (result.success) {
         setVerificationStatus({
@@ -88,9 +79,7 @@ const SoftwareSettingsDialog = () => {
     }
   };
 
-  const handleRememberChange = (event) => {
-    setRememberCredentials(event.target.checked);
-  };
+  
 
   return (
     <>
@@ -156,16 +145,7 @@ const SoftwareSettingsDialog = () => {
               size="small"
             />
             
-            <FormControlLabel
-              control={
-                <Checkbox 
-                  checked={rememberCredentials} 
-                  onChange={handleRememberChange}
-                  color="primary"
-                />
-              }
-              label="Запомнить"
-            />
+          
             
             {verificationStatus && (
               <Alert severity={verificationStatus.success ? 'success' : 'error'}>
@@ -179,9 +159,7 @@ const SoftwareSettingsDialog = () => {
 
         <DialogActions sx={{ justifyContent: 'space-between', px: 3, py: 2 }}>
           <Typography variant="caption" color="text.secondary">
-            {rememberCredentials 
-              ? "Пароль будет сохранен" 
-              : "Пароль не будет сохранен"}
+            Пароль будет сохранен
           </Typography>
           
           <Button
