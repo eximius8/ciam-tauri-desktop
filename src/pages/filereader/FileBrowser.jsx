@@ -17,11 +17,14 @@ import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import { Command } from '@tauri-apps/plugin-shell';
+import EditableItemsTable from '../../components/filereader/EditableItemsTable';
 
 const FileBrowser = ({ onDataLoaded }) => {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [fileCount, setFileCount] = useState(0);
   const [isLoadButtonEnabled, setIsLoadButtonEnabled] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [items, setItems] = useState([]);
 
   const browseFiles = async () => {
     // Define the file filters similar to tkinter filetypes
@@ -73,17 +76,20 @@ const FileBrowser = ({ onDataLoaded }) => {
 
   const handleLoad = async () => {
     // Implement your file loading logic here
-  
+    setIsLoading(true);
     const command = Command.sidecar("sidecars/filereader", [
       ...selectedFiles,
     ]);
+    console.log([...selectedFiles])
     let result = await command.execute();    
     const obj = JSON.parse(result.stdout);   
-    
+    console.log(obj);
+    setItems(obj);
     if (onDataLoaded && typeof onDataLoaded === 'function') {
       // Process files and pass data to parent component
       onDataLoaded(selectedFiles);
     }
+    setIsLoading(false);
   };
 
   // Extract filename from full path
@@ -97,64 +103,68 @@ const FileBrowser = ({ onDataLoaded }) => {
   };
 
   return (
-    <Paper elevation={3} sx={{ p: 3, m: 2 }}>
-      <Stack spacing={3}>
-        <Typography variant="h6" component="h2">
-          Выбор файлов
-        </Typography>
-        
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <>
+      <Paper elevation={3} sx={{ p: 3, m: 2 }}>
+        <Stack spacing={3}>
+          <Typography variant="h6" component="h2">
+            Выбор файлов
+          </Typography>
+          
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Button 
+              variant="contained" 
+              startIcon={<FolderOpenIcon />}
+              onClick={browseFiles}
+              disabled={isLoading}
+            >
+              Выбрать файлы
+            </Button>
+            
+            <Chip 
+              label={`Выбрано файлов: ${fileCount}`} 
+              color={fileCount > 0 ? "primary" : "default"}
+              variant={fileCount > 0 ? "filled" : "outlined"}
+            />
+          </Box>
+          
+          {selectedFiles.length > 0 && (
+            <>
+              <Divider />
+              <Typography variant="subtitle1">
+                Выбранные файлы:
+              </Typography>
+              
+              <Paper variant="outlined" sx={{ maxHeight: 200, overflow: 'auto' }}>
+                <List dense>
+                  {selectedFiles.map((file, index) => (
+                    <ListItem key={index}>
+                      <InsertDriveFileIcon color="primary" sx={{ mr: 1 }} />
+                      <ListItemText 
+                        primary={getFileName(file)}
+                        secondary={file}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </Paper>
+            </>
+          )}
+          
           <Button 
             variant="contained" 
-            startIcon={<FolderOpenIcon />}
-            onClick={browseFiles}
+            color="success"
+            startIcon={<CloudUploadIcon />}
+            onClick={handleLoad} 
+            disabled={!isLoadButtonEnabled || isLoading}
+            fullWidth
+            size="large"
           >
-            Выбрать файлы
+            Загрузить
           </Button>
-          
-          <Chip 
-            label={`Выбрано файлов: ${fileCount}`} 
-            color={fileCount > 0 ? "primary" : "default"}
-            variant={fileCount > 0 ? "filled" : "outlined"}
-          />
-        </Box>
-        
-        {selectedFiles.length > 0 && (
-          <>
-            <Divider />
-            <Typography variant="subtitle1">
-              Выбранные файлы:
-            </Typography>
-            
-            <Paper variant="outlined" sx={{ maxHeight: 200, overflow: 'auto' }}>
-              <List dense>
-                {selectedFiles.map((file, index) => (
-                  <ListItem key={index}>
-                    <InsertDriveFileIcon color="primary" sx={{ mr: 1 }} />
-                    <ListItemText 
-                      primary={getFileName(file)}
-                      secondary={file}
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </Paper>
-          </>
-        )}
-        
-        <Button 
-          variant="contained" 
-          color="success"
-          startIcon={<CloudUploadIcon />}
-          onClick={handleLoad} 
-          disabled={!isLoadButtonEnabled}
-          fullWidth
-          size="large"
-        >
-          Загрузить
-        </Button>
-      </Stack>
-    </Paper>
+        </Stack>
+      </Paper>
+    <EditableItemsTable items={items} setItems={setItems}/>
+    </>
   );
 };
 

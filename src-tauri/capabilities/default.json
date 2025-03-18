@@ -11,16 +11,13 @@
       "identifier": "shell:allow-execute",
       "allow": [
         {
-          "args": [
-            {
-              "validator": "\\S+"
-            }
-          ],
+          "args": true,
           "name": "sidecars/filereader",
           "sidecar": true
         }
       ]
-    },    
+    },
+    "shell:allow-kill",
     "shell:allow-open",
     "opener:default",
     "sql:default",
