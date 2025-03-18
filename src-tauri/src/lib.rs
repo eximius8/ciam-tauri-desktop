@@ -66,9 +66,10 @@ pub fn run() {
                 CREATE INDEX idx_measurements_mdt ON measurements(mdt);
                 CREATE INDEX idx_measurements_type ON measurements(mtype);",
             kind: MigrationKind::Up,
-        }
+        },
     ];
     tauri::Builder::default()
+        .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_sql::Builder::new().build())
         .plugin(tauri_plugin_http::init())
         .plugin(

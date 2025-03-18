@@ -7,10 +7,25 @@
   ],
   "permissions": [
     "core:default",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "args": [
+            {
+              "validator": "\\S+"
+            }
+          ],
+          "name": "sidecars/filereader",
+          "sidecar": true
+        }
+      ]
+    },    
+    "shell:allow-open",
     "opener:default",
     "sql:default",
     "sql:allow-execute",
-    "dialog:allow-open", 
+    "dialog:allow-open",
     {
       "identifier": "http:default",
       "allow": [
@@ -18,9 +33,10 @@
           "url": "https://*"
         },
         {
-          "url": "http://10.1.10.111:30801/*"          
+          "url": "http://10.1.10.111:30801/*"
         }
       ]
-    }
+    },
+    "shell:default"
   ]
 }

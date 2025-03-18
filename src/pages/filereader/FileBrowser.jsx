@@ -16,6 +16,7 @@ import {
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import { Command } from '@tauri-apps/plugin-shell';
 
 const FileBrowser = ({ onDataLoaded }) => {
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -70,10 +71,15 @@ const FileBrowser = ({ onDataLoaded }) => {
     }
   };
 
-  const handleLoad = () => {
+  const handleLoad = async () => {
     // Implement your file loading logic here
-    console.log('Loading files:', selectedFiles);
-    // If you have the onDataLoaded prop function, call it
+  
+    const command = Command.sidecar("sidecars/filereader", [
+      ...selectedFiles,
+    ]);
+    let result = await command.execute();    
+    const obj = JSON.parse(result.stdout);   
+    
     if (onDataLoaded && typeof onDataLoaded === 'function') {
       // Process files and pass data to parent component
       onDataLoaded(selectedFiles);
