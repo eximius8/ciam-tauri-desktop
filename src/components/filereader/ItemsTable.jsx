@@ -67,11 +67,11 @@ const ItemsTable = ({ items, selected, setSelected }) => {
                 }}
               />
             </TableCell>
-            <TableCell>Bush</TableCell>
+            <TableCell>Исполниель</TableCell>
             <TableCell>Creation Date</TableCell>
             <TableCell>File</TableCell>
             <TableCell>NGDU</TableCell>
-            <TableCell>Operator</TableCell>
+            <TableCell>Оператор</TableCell>
             <TableCell>Source</TableCell>
             <TableCell>Type</TableCell>
             <TableCell>Well</TableCell>

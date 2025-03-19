@@ -18,13 +18,20 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import { Command } from '@tauri-apps/plugin-shell';
 import EditableItemsTable from '../../components/filereader/EditableItemsTable';
+import { useFileReader } from '../../contexts/filereadercontext';
 
-const FileBrowser = ({ onDataLoaded }) => {
+const FileBrowser = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [fileCount, setFileCount] = useState(0);
   const [isLoadButtonEnabled, setIsLoadButtonEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [items, setItems] = useState([]);
+  const {items, dispatch} = useFileReader();
+  
+  const setItems = (items) => {
+    items.forEach(item => {
+      dispatch({ type: 'add', item: item })      
+    });
+  }
 
   const browseFiles = async () => {
     // Define the file filters similar to tkinter filetypes
@@ -80,15 +87,9 @@ const FileBrowser = ({ onDataLoaded }) => {
     const command = Command.sidecar("sidecars/filereader", [
       ...selectedFiles,
     ]);
-    console.log([...selectedFiles])
     let result = await command.execute();    
     const obj = JSON.parse(result.stdout);   
-    console.log(obj);
-    setItems(obj);
-    if (onDataLoaded && typeof onDataLoaded === 'function') {
-      // Process files and pass data to parent component
-      onDataLoaded(selectedFiles);
-    }
+    setItems(obj);    
     setIsLoading(false);
   };
 

@@ -13,7 +13,7 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import Measurements from './pages/measurements/Measurements';
 import SoftwareSettingsDialog from './components/SoftwareSettingsDialog';
 import RemoteData from './pages/remotedata/RemoteData';
-import FileBrowser from './pages/filereader/FileBrowser';
+import FileReader from './pages/filereader/FileReader';
 
 import { TabPanel } from './components/TabPanel';
 import { CloseableTab } from './components/CloseableTab';
@@ -38,7 +38,7 @@ const App = () => {
     { 
       id: 'import', 
       label: 'Импорт из файлов', 
-      content: <FileBrowser />
+      content: <FileReader />
     },
   ]);
   

@@ -5,102 +5,20 @@ import { Box, Typography } from '@mui/material';
 import TableToolbar from './TableToolbar';
 import ItemsTable from './ItemsTable';
 import BatchEditDialog from './BatchEditDialog';
+import { useFileReader } from '../../contexts/filereadercontext';
 
 // Main component that orchestrates the table functionality
 const EditableItemsTable = () => {
-  // Sample item data
-  const [items, setItems] = useState([
-    {
-      id: "dbf137c8db89cc39b2d8629eec674b6d",
-      bush: "000005",
-      creationdtm: "2025-03-18T15:20:56.635+01:00",
-      file: "00000206.D",
-      ngdu: "",
-      operator: "5",
-      source: "Файлы СИАМ",
-      type_hr: "SIAM COMPLEX DYNAMOGRAM V2.0",
-      well: "009638",
-      workshop: "5",
-      dataArray: [{}, {}],
-      device_meta: {
-        voltage: null,
-        deviceType: 'динамограф',
-        deviceManufacturer: 'СИАМ',
-        deviceModel: 'Файлы СИАМ',
-        deviceVersion: '00'
-      },
-      dynometa: {
-        debit: null,
-        buffPres: 0,
-        rodMove: null,
-        rodDiameter: 320,
-        period: 728
-      },
-      field: "5",
-      mdt: "2023-05-02T11:55:11.000+02:00",
-      mtype: "dyno"
-    },
-    {
-      id: "abc123c8db89cc39b2d8629eec674xyz",
-      bush: "000007",
-      creationdtm: "2025-03-17T10:15:42.125+01:00",
-      file: "00000208.D",
-      ngdu: "",
-      operator: "7",
-      source: "Файлы СИАМ",
-      type_hr: "SIAM COMPLEX DYNAMOGRAM V2.0",
-      well: "009640",
-      workshop: "7",
-      dataArray: [{}, {}],
-      device_meta: {
-        voltage: null,
-        deviceType: 'динамограф',
-        deviceManufacturer: 'СИАМ',
-        deviceModel: 'Файлы СИАМ',
-        deviceVersion: '00'
-      },
-      dynometa: {
-        debit: null,
-        buffPres: 0,
-        rodMove: null,
-        rodDiameter: 320,
-        period: 728
-      },
-      field: "7",
-      mdt: "2023-05-01T09:30:22.000+02:00",
-      mtype: "dyno"
-    },
-    {
-      id: "def456c8db89cc39b2d8629eec674abc",
-      bush: "000009",
-      creationdtm: "2025-03-16T09:12:33.245+01:00",
-      file: "00000210.D",
-      ngdu: "",
-      operator: "3",
-      source: "Файлы СИАМ",
-      type_hr: "SIAM COMPLEX DYNAMOGRAM V2.0",
-      well: "009642",
-      workshop: "3",
-      dataArray: [{}, {}],
-      device_meta: {
-        voltage: null,
-        deviceType: 'динамограф',
-        deviceManufacturer: 'СИАМ',
-        deviceModel: 'Файлы СИАМ',
-        deviceVersion: '00'
-      },
-      dynometa: {
-        debit: null,
-        buffPres: 0,
-        rodMove: null,
-        rodDiameter: 320,
-        period: 728
-      },
-      field: "3",
-      mdt: "2023-04-30T14:22:45.000+02:00",
-      mtype: "dyno"
-    }
-  ]);
+
+  const {items, dispatch} = useFileReader();
+
+  const updateItems = (updateditems) => {
+    updateditems.forEach(item => {
+      dispatch({ type: 'update', id: item.id, item: item })      
+    });
+  }
+    
+   
 
   // State for batch editing
   const [selected, setSelected] = useState([]);
@@ -151,7 +69,7 @@ const EditableItemsTable = () => {
       return item;
     });
     
-    setItems(updatedItems);
+    updateItems(updatedItems);
     setOpenBatchEdit(false);
     setSelected([]);
   };
