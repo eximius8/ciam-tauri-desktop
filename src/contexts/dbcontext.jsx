@@ -17,14 +17,19 @@ export const useDatabase = () => {
 export const DBProvider = props => {
     const [db, setDb] = useState("");
     const [isDBLoading, setIsLoading] = useState(true);
+    const [ngdus, setNgdus] = useState([]);
+
 
     useEffect(() => {
         async function loadDB() {
           const database = await Database.load('sqlite:ciam.db');
-          setDb(database);          
+          const ngdusq = await database.select('SELECT * FROM ngdu', []);
+          console.log(ngdusq);
+          setDb(database);
+          setNgdus(ngdusq);              
         }
         loadDB();
-        setIsLoading(false);
+        setIsLoading(false);        
     },[]);
 
     const selectQuery = async (query, params) => {
@@ -54,6 +59,7 @@ export const DBProvider = props => {
         selectQuery,
         executeQuery,
         clearDB,
+        ngdus,
     };    
     
   

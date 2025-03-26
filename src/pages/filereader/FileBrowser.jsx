@@ -25,11 +25,11 @@ const FileBrowser = () => {
   const [fileCount, setFileCount] = useState(0);
   const [isLoadButtonEnabled, setIsLoadButtonEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const {items, dispatch} = useFileReader();
+  const {measurementsDispatch} = useFileReader();
   
   const setItems = (items) => {
     items.forEach(item => {
-      dispatch({ type: 'add', item: item })      
+      measurementsDispatch({ type: 'add', item: item })      
     });
   }
 
@@ -98,10 +98,6 @@ const FileBrowser = () => {
     return filePath.split('\\').pop().split('/').pop();
   };
 
-  // Get file extension
-  const getFileExtension = (filename) => {
-    return filename.slice((filename.lastIndexOf('.') - 1 >>> 0) + 2);
-  };
 
   return (
     <>
@@ -164,7 +160,7 @@ const FileBrowser = () => {
           </Button>
         </Stack>
       </Paper>
-    <EditableItemsTable items={items} setItems={setItems}/>
+      <EditableItemsTable/>
     </>
   );
 };

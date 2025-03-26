@@ -47,7 +47,7 @@ const TableToolbar = ({ numSelected, openBatchEdit }) => {
             startIcon={<EditIcon />}
             onClick={openBatchEdit}
           >
-            Batch Edit
+            Изменить
           </Button>
         </Tooltip>
       )}
