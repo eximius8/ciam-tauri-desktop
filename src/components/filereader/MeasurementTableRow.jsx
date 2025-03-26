@@ -51,7 +51,7 @@ export default function MeasurementTableRow({item}) {
                 onClick={handleSelectItem}
                 />
             </TableCell>
-            <TableCell>{formatDate(item.creationdtm)}</TableCell>
+            <TableCell>{formatDate(item.mdt)}</TableCell>
             <TableCell>{ngduTitle}</TableCell>
             <TableCell>{workshopTitle}</TableCell>
             <TableCell>{wellNumber}</TableCell>

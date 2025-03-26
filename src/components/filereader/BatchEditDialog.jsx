@@ -6,8 +6,6 @@ import {
     DialogTitle, 
     Box, 
     Typography, 
-    TextField, 
-    Checkbox, 
     Button,
     FormControl,
     InputLabel,
@@ -15,45 +13,36 @@ import {
     MenuItem
   } from '@mui/material';
 import { useDatabase } from '../../contexts/dbcontext';
+import { useFileReader } from '../../contexts/filereadercontext';
 
 
-const EditField = ({isSelected, setIsSelected, name, value, setValue, items}) => {
+const EditField = ({name, value, setValue, items, title}) => {
 
   return (
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, mt: 1 }}>
-            <Checkbox
-              checked={isSelected}
-              onChange={(event) => setIsSelected(event.target.checked)}
-            />
+            
             <FormControl fullWidth>
               <InputLabel id="item-label">{name}</InputLabel>
               <Select
                 labelId="item-label"
                 id="ngdu"
                 value={value}
-                label={name}
-                disabled={!isSelected}
+                label={name}                
                 fullWidth
                 margin="dense"
                 size="small"
                 onChange={(e) => setValue(e.target.value)}
               >
-                {items.map((item) => <MenuItem key={item.id} value={item.id}>{item.title}</MenuItem>)}         
+                {items.map((item) => <MenuItem key={item.id} value={item.id}>{item[title]}</MenuItem>)}         
               </Select>
             </FormControl>            
           </Box>
   )
 }
 
-
-
 // BatchEditDialog.js component
 const BatchEditDialog = ({ open, onClose }) => {
     const { ngdus, selectQuery } = useDatabase();
-    const [ isNGDUselected, setIsNGDUselected ] = useState(false);
-    const [ isWorkshopselected, setIsWorkshopselected ] = useState(false);
-    const [ isWellselected, setIsWellselected ] = useState(false);
-
     const [ ngduValue, setNgduValue ] = useState('');
     const [ workshopValue, setWorkshopValue ] = useState('');
     const [ wellValue, setWellValue ] = useState('');
@@ -61,62 +50,40 @@ const BatchEditDialog = ({ open, onClose }) => {
     const [ workshopItems, setWorkshopItems ] = useState([]);
     const [ wellItems, setWellItems ] = useState([]);
 
+    const { updateMeasurementsFromSelected } = useFileReader();
+
+    
+
     const handleNGDUChange = async (value) => {
         setNgduValue(value);
         setWorkshopValue('');
         setWellValue('');
-        setIsWorkshopselected(true);
-        setIsWellselected(true);
         setWellItems([]);
         if (value !== '') {
           const workshops = await selectQuery('SELECT * FROM workshop WHERE ngduId = ?', [value]);
-          console.log(workshops);
           setWorkshopItems(workshops);
         } else{
           setWorkshopItems([]);
         }
     }
 
+    const handleWorkshopChange = async (value) => {
+        setWorkshopValue(value);
+        setWellValue('');
+        if (value !== '') {
+          const wells = await selectQuery('SELECT * FROM well WHERE workshopId = ?', [value]);
+          setWellItems(wells);
+        } else{
+          setWellItems([]);
+        }
+    }
 
 
-    //const applyBatchEdit = () => {
-    //    const updatedItems = items.map(item => {
-    //      if (selected.includes(item.id)) {
-    //        const updates = {};
-    //        Object.keys(batchEditValues).forEach(field => {
-    //          if (batchEditValues[field].apply) {
-    //            updates[field] = batchEditValues[field].value;
-    //          }
-    //        });
-    //        return { ...item, ...updates };
-    //      }
-    //      return item;
-    //    });
-    //    
-    //    updateItems(updatedItems);
-    //    setOpenBatchEdit(false);
-    //    setSelected([]);
-    //  };
-/**
 
-
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <Checkbox
-              checked={batchEditValues.operator.apply}
-              onChange={() => handleBatchEditToggle('operator')}
-            />
-            <TextField
-              label="Operator"
-              value={batchEditValues.operator.value}
-              onChange={(e) => handleBatchEditChange('operator', e.target.value)}
-              disabled={!batchEditValues.operator.apply}
-              fullWidth
-              margin="dense"
-              size="small"
-            />
-          </Box>
- */
-
+    const applyChanges = () => {
+      updateMeasurementsFromSelected(ngduValue, workshopValue, wellValue);
+      onClose();
+    }
   
     return (
       <Dialog open={open} onClose={onClose}>
@@ -128,43 +95,38 @@ const BatchEditDialog = ({ open, onClose }) => {
           
           {/* NGDU */}
           <EditField
-            isSelected={isNGDUselected}
-            setIsSelected={setIsNGDUselected}
             name="НГДУ"
             value={ngduValue}
             setValue={handleNGDUChange}
             items={ngdus}
+            title='title'
           />
           <EditField
-            isSelected={isWorkshopselected}
-            setIsSelected={setIsWorkshopselected}
-            name="Исполнитель"
+            name="Цех"
             value={workshopValue}
-            setValue={setWorkshopValue}
+            setValue={handleWorkshopChange}
             items={workshopItems}
+            title='title'
           />
           <EditField
-            isSelected={isWellselected}
-            setIsSelected={setIsWellselected}
             name="Скважина"
             value={wellValue}
             setValue={setWellValue}
             items={wellItems}
-          />          
-
-          
+            title='number'
+          />           
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose} color="primary">
-            Cancel
+            Отмена
           </Button>
           <Button 
-            onClick={() => console.log('Apply Changes')} 
+            onClick={applyChanges} 
             color="primary"
             variant="contained"
-            disabled={false}
+            disabled={!ngduValue || !workshopValue || !wellValue}
           >
-            Apply Changes
+            Сохранить
           </Button>
         </DialogActions>
       </Dialog>

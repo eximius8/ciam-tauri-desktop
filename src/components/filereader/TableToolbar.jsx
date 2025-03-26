@@ -1,13 +1,28 @@
-import { Toolbar, Typography, Button, Tooltip } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { Toolbar, Typography, Button } from '@mui/material';
 
 import {
   Edit as EditIcon,
+  Delete as DeleteIcon,
+  Save as SaveIcon
 } from '@mui/icons-material';
+import { useFileReader } from '../../contexts/filereadercontext';
 
 
-// TableToolbar.js component
+const TableToolbar = ({ openBatchEdit }) => {
 
-const TableToolbar = ({ numSelected, openBatchEdit }) => {
+  const { selected, removeSelectedMeasurements, checkSelected, saveSelectedToDB } = useFileReader();
+  const [ saveDisabled, setSaveDisabled] = useState(true);
+  const numSelected = selected.length; 
+
+  useEffect(() => {
+    const check = async () => {
+      const result = await checkSelected();
+      setSaveDisabled(!result);
+    };
+    check();
+  },[selected, checkSelected]);
+  
   
   return (
     <Toolbar
@@ -41,15 +56,34 @@ const TableToolbar = ({ numSelected, openBatchEdit }) => {
       )}
 
       {numSelected > 0 && (
-        <Tooltip title="Batch Edit">
+        <>
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={<SaveIcon />}
+            onClick={saveSelectedToDB}
+            disabled={saveDisabled}          
+            sx={{ mr: 2 }}
+          >
+            Сохранить
+          </Button>        
+          <Button
+            variant="contained"
+            color="error"
+            startIcon={<DeleteIcon />}
+            onClick={removeSelectedMeasurements}            
+            sx={{ mr: 2 }}
+          >
+            Удалить
+          </Button>        
           <Button 
             variant="contained" 
             startIcon={<EditIcon />}
             onClick={openBatchEdit}
           >
             Изменить
-          </Button>
-        </Tooltip>
+          </Button>          
+        </>
       )}
     </Toolbar>
   );

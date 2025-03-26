@@ -5,13 +5,13 @@ import { Box, Typography } from '@mui/material';
 import TableToolbar from './TableToolbar';
 import ItemsTable from './ItemsTable';
 import BatchEditDialog from './BatchEditDialog';
-import { useFileReader } from '../../contexts/filereadercontext';
+
 
 
 // Main component that orchestrates the table functionality
 const EditableItemsTable = () => {
 
-  const { selected } = useFileReader();  // State for batch editing  
+  
   const [openBatchEdit, setOpenBatchEdit] = useState(false);
 
   return (
@@ -20,8 +20,7 @@ const EditableItemsTable = () => {
         Items Table
       </Typography>
       
-      <TableToolbar 
-        numSelected={selected.length} 
+      <TableToolbar        
         openBatchEdit={() => setOpenBatchEdit(true)} 
       />
       
