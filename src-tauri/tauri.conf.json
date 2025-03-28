@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "tauri-learn",
+        "title": "ЦИАМ - приложение",
         "width": 800,
         "height": 600
       }

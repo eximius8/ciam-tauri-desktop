@@ -1,10 +1,22 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 use tauri_plugin_sql::{Migration, MigrationKind};
+use tauri::menu::{MenuBuilder};
+use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
+
+#[tauri::command]
+fn show_about_dialog(app: &tauri::AppHandle) {
+    let version = env!("CARGO_PKG_VERSION");
+    let _ans = app.dialog()
+        .message(format!("Версия {}\nРазработка приложения Михаил Трунов m.trunov@innopolis.ru", version))
+        .kind(MessageDialogKind::Info)
+        .title("О программе")
+        .blocking_show();
+    }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -81,6 +93,26 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         // Add the fs plugin for file operations
         .plugin(tauri_plugin_fs::init())
+        .setup(|app| {
+            let menu = MenuBuilder::new(app)
+                .text("about", "О программе")
+                .build()?;
+
+            app.set_menu(menu)?;
+            app.on_menu_event(move |_app_handle: &tauri::AppHandle, event| {
+
+                match event.id().0.as_str() {
+                    "about" => {
+                        show_about_dialog(_app_handle);
+                    }                    
+                    _ => {
+                        println!("unexpected menu event");
+                    }
+                }
+            });
+
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

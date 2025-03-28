@@ -34,6 +34,7 @@
         }
       ]
     },
-    "shell:default"
+    "shell:default",
+    "dialog:default"
   ]
 }
