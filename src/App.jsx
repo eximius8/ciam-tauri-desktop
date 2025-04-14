@@ -14,6 +14,7 @@ import Measurements from './pages/measurements/Measurements';
 import SoftwareSettingsDialog from './components/SoftwareSettingsDialog';
 import RemoteData from './pages/remotedata/RemoteData';
 import FileReader from './pages/filereader/FileReader';
+import Mikon101Interface from './pages/mikon101/Mikon101Interface';
 
 import { TabPanel } from './components/TabPanel';
 import { CloseableTab } from './components/CloseableTab';
@@ -48,8 +49,8 @@ const App = () => {
   // Track which special tab types have been opened
   const [openedTabTypes, setOpenedTabTypes] = useState({
     'МИКОН 101': false,
-    'СУДОС': false,
-    'Сиддос': false
+    //'СУДОС': false,
+    //'Сиддос': false
   });
 
   // All tabs combined
@@ -80,7 +81,7 @@ const App = () => {
       const newTab = {
         id: `tab-${type}`,
         label: type,
-        content: `Содержимое вкладки ${type}`
+        content: <Mikon101Interface />
       };
       
       setDynamicTabs([...dynamicTabs, newTab]);
@@ -171,7 +172,7 @@ const App = () => {
         >
           МИКОН 101
         </MenuItem>
-        <MenuItem 
+       {/* <MenuItem 
           onClick={() => handleAddTab('СУДОС')} 
           disabled={openedTabTypes['СУДОС']}
         >
@@ -182,7 +183,7 @@ const App = () => {
           disabled={openedTabTypes['Сиддос']}
         >
           Сиддос
-        </MenuItem>
+        </MenuItem> */}
       </Menu>
 
       {allTabs.map((tab, index) => (
